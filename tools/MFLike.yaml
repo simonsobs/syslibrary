@@ -84,6 +84,7 @@ systematics:
   components:
     tt:
       - calib
+      - fromfile
     te:
       - calib
     ee: 
