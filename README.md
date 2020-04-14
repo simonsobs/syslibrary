@@ -5,6 +5,10 @@ Library for the evaluation of the systematics template for SO hi-ell likelihood 
 Main modules are
 * `syslib.py`: evaluation of systematics in ell-space
 
+Currently available features are
+* calibration
+* additive systematics template from file
+
 To get started, have a look at the notebooks in `sysspectra/notebook`
 
 ## Contributing
