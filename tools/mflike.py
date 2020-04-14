@@ -433,15 +433,17 @@ def get_systematic_template(sys_params, sys_template,
     nu_0 = normalisation["nu_0"]
     ell_0 = normalisation["ell_0"]
 
-    from sysspectra import syslib as syl
-    
-    calib = syl.Calibration()
-
-    #cnorm=(1./6000.) #Martina: change norm of const Cl.
-
-    # Make sure to pass a numpy array to fgspectra
+        # Make sure to pass a numpy array to fgspectra
     if not isinstance(frequencies, np.ndarray):
         frequencies = np.array(frequencies)
+
+    from sysspectra import syslib as syl
+    #from fgspectra import cross as fgc
+    #from fgspectra.power import PowerSpectrumFromFile
+    
+    calib = syl.Calibration()
+    #generict=fgc.FactorizedCrossSpectrum(syl.Calibration(),syl.TemplateFromFile())
+    generict=syl.TemplatesFromFiles(nu=[str(f) for f in frequencies])
 
     cal_pars={}
     #cal_pars["tt"]=[sys_params["cTT"+str(frequencies[0])],
@@ -467,7 +469,8 @@ def get_systematic_template(sys_params, sys_template,
     template["ee","calib"] = calib(cXnu1=cal_pars["ee"],cYnu2=cal_pars["ee"])
     template["te","calib"] = calib(cXnu1=cal_pars["tt"],cYnu2=cal_pars["ee"])
 
-    #template["tt","rescale"] = 1.0*cl['tt']
+    #template["tt","fromfile"] = generict({},{"ell":ell,"ell_0":ell_0,"amp":100.})
+    template["tt","fromfile"] = generict(ell=ell,ell_0=ell_0)
 
     components = sys_template["components"]
     component_list = {s: components[s] for s in requested_cls}
