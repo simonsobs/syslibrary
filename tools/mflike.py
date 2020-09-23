@@ -339,18 +339,39 @@ class MFLike(_InstallableLikelihood):
         fg_model = self._get_foreground_model(
             {k: params_values[k] for k in self.expected_params[0:self.last_fg_index]})
         # Get new systematic template given its nuisance parameters, Martina
-        sys_template = self._get_systematic_template(
-            {k: params_values[k] for k in self.expected_params[self.last_fg_index:]})
+        self.temp = {k: params_values[k] for k in self.expected_params[self.last_fg_index:]}
+        #temp.update({"dls":Dls})
+        #sys_template = self._get_systematic_template(
+        #    {k: params_values[k] for k in self.expected_params[self.last_fg_index:]})
+        #    temp)
 
         ps_vec = np.zeros_like(self.data_vec)
+        dltemp = dict()#np.zeros_like(self.Dls) 
+        # for m in self.spec_meta:
+        #     p = m['pol']
+        #     i = m['ids']
+        #     w = m['bpw'][1]
+        #     cltemp=sys_template[p,'calib',m['nu1'], m['nu2']]*(Dls[p] + 
+        #         fg_model[p, 'all', m['nu1'], m['nu2']])
+        #     clt = np.dot(w, cltemp)
+        #     ps_vec[i] = clt
+        print(self.requested_cls)
+        for p in self.requested_cls:
+            for nu1 in np.array(self.freqs):
+                for nu2 in np.array(self.freqs):
+                    dltemp[p,nu1,nu2]=(Dls[p] + 
+                        fg_model[p, 'all', nu1, nu2])
+        self.temp.update({"dls":dltemp})
+        sys_template = self._get_systematic_template(self.temp)
+
         for m in self.spec_meta:
             p = m['pol']
             i = m['ids']
             w = m['bpw'][1]
-            cltemp=sys_template[p,'calib',m['nu1'], m['nu2']]*(Dls[p] + 
-                fg_model[p, 'all', m['nu1'], m['nu2']])
+            cltemp=sys_template[p,"final",m['nu1'], m['nu2']]
             clt = np.dot(w, cltemp)
             ps_vec[i] = clt
+
 
         return ps_vec
 
@@ -396,7 +417,8 @@ def get_foreground_model(fg_params, fg_model,
     model = {}
     model["tt", "kSZ"] = fg_params["a_kSZ"] * ksz(
         {"nu": frequencies},
-        {"ell": ell, "ell_0": ell_0})
+    #    {"ell": ell, "ell_0": ell_0})
+        {"ell": ell})
     model["tt", "cibp"] = fg_params["a_p"] * cibp(
         {"nu": frequencies, "nu_0": nu_0,
          "temp": fg_params["T_d"], "beta": fg_params["beta_p"]},
@@ -406,7 +428,8 @@ def get_foreground_model(fg_params, fg_model,
         {"ell": ell, "ell_0": ell_0, "alpha": 2})
     model["tt", "tSZ"] = fg_params["a_tSZ"] * tsz(
         {"nu": frequencies, "nu_0": nu_0},
-        {"ell": ell, "ell_0": ell_0})
+    #    {"ell": ell, "ell_0": ell_0})
+        {"ell": ell})
     model["tt", "cibc"] = fg_params["a_c"] * cibc(
         {"nu": frequencies, "nu_0": nu_0,
          "temp": fg_params["T_d"], "beta": fg_params["beta_c"]},
@@ -432,18 +455,30 @@ def get_systematic_template(sys_params, sys_template,
     normalisation = sys_template["normalisation"]
     nu_0 = normalisation["nu_0"]
     ell_0 = normalisation["ell_0"]
+    theodls = sys_params["dls"]
 
         # Make sure to pass a numpy array to fgspectra
     if not isinstance(frequencies, np.ndarray):
         frequencies = np.array(frequencies)
 
+    template = dict()
+    enu1={frequencies[0]:np.array([1.e-5,1.e-8,
+        1.e-15]),frequencies[1]:np.array([2.e-5,2.e-8,
+        2.e-15]),frequencies[2]:np.array([3.e-5,3.e-8,3.e-15])}
+    #enu2=np.array([0.,0.,0.])
+
     from sysspectra import syslib as syl
-    #from fgspectra import cross as fgc
-    #from fgspectra.power import PowerSpectrumFromFile
+
+    teleak=syl.TtoEleak_Planck15(ell=ell,spectra=theodls)
+    fromyaml = syl.ReadTemplateFromFile(rootname='test_template')
+
+    template['t2eleak'] = teleak(nu=frequencies,enu=enu1)
+    template['fyaml'] = fromyaml(ell=ell)
+
     
-    calib = syl.Calibration()
+    #calib = syl.Calibration_Planck15(ell=ell,spectra=theodls)
     #generict=fgc.FactorizedCrossSpectrum(syl.Calibration(),syl.TemplateFromFile())
-    generict=syl.TemplatesFromFiles(nu=[str(f) for f in frequencies])
+    #generict=syl.TemplatesFromFiles(nu=[str(f) for f in frequencies])
 
     cal_pars={}
     #cal_pars["tt"]=[sys_params["cTT"+str(frequencies[0])],
@@ -459,28 +494,51 @@ def get_systematic_template(sys_params, sys_template,
         sys_params["cEE"+str(frequencies[1])],
         sys_params["cEE"+str(frequencies[2])]]))
 
-    template = {}
+    #template = {}
     #template["tt","flat"] = sys_params["a_flat"]*flat({"nu": frequencies},
     #                                            {"ell": ell})
     #template["tt","flat_pl"] = sys_params["a_flatpl"]*flat_pl({"nu": frequencies,
     #        "nu_0": nu_0,"beta": 1.0},{"ell": ell})
     
-    template["tt","calib"] = calib(cXnu1=cal_pars["tt"],cYnu2=cal_pars["tt"])
-    template["ee","calib"] = calib(cXnu1=cal_pars["ee"],cYnu2=cal_pars["ee"])
-    template["te","calib"] = calib(cXnu1=cal_pars["tt"],cYnu2=cal_pars["ee"])
+    # template["tt","calib"] = calib(cXnu1=cal_pars["tt"],
+    #     cYnu2=cal_pars["tt"],nu=frequencies)
+    # template["ee","calib"] = calib(cXnu1=cal_pars["ee"],
+    #     cYnu2=cal_pars["ee"],nu=frequencies)
+    # template["te","calib"] = calib(cXnu1=cal_pars["tt"],
+    #     cYnu2=cal_pars["ee"],nu=frequencies)
 
     #template["tt","fromfile"] = generict({},{"ell":ell,"ell_0":ell_0,"amp":100.})
-    template["tt","fromfile"] = generict(ell=ell,ell_0=ell_0)
+    #template["tt","fromfile"] = generict(ell=ell)
 
-    components = sys_template["components"]
-    component_list = {s: components[s] for s in requested_cls}
+    #components = template.keys()#sys_template["components"]
+    #print(components)
+    #component_list = {s: components[s] for s in requested_cls}
     sys_dict = {}
+    app_sys = {}
     for c1, f1 in enumerate(frequencies):
         for c2, f2 in enumerate(frequencies):
             for s in requested_cls:
-                sys_dict[s, "all", f1, f2] = np.zeros(len(ell))
-                for comp in component_list[s]:
-                    sys_dict[s, comp, f1, f2] = template[s, comp][c1, c2]
-                    sys_dict[s, "all", f1, f2] += sys_dict[s, comp, f1, f2]
+                sys_dict[s, "sum", f1, f2] = np.zeros(len(ell))
+                for comp in template.keys():#component_list[s]:
+                    sys_dict[s, "sum", f1, f2] += template[comp][s, f1, f2]
+                    sys_dict[s, comp, f1, f2] = template[comp][s, f1, f2]
+                app_sys[s, f1, f2] = theodls[s, f1, f2]+sys_dict[s, "sum", f1, f2]
+
+
+    calib = syl.Calibration_Planck15(ell=ell,spectra=app_sys)
+    #calib2= syl.Calibration()
+    template["calib"] = calib(cal1=cal_pars,
+        cal2=cal_pars,nu=frequencies)
+
+    for c1, f1 in enumerate(frequencies):
+        for c2, f2 in enumerate(frequencies):
+            for s in requested_cls:
+                #sys_dict[s, "final", f1, f2] = np.zeros(len(ell))
+                for comp in template.keys():#component_list[s]:
+                    sys_dict[s, comp+'_all', f1, f2] = template[comp][s, f1, f2]
+                #print(comp)
+                sys_dict[s, "final", f1, f2] = template[comp][s, f1, f2]
+
+
 
     return sys_dict
