@@ -7,7 +7,8 @@ Main modules are
 
 Currently available features are
 * calibration
-* additive systematics template from file
+* additive systematics template from yaml file
+* T-to-E beam leakage
 
 To get started, have a look at the notebooks in `sysspectra/notebook`
 
@@ -17,6 +18,7 @@ Current contributors to SYSspectra are: Martina Gerbino. Special thanks to FGSpe
 ## Dependencies
 * Python > 3
 * numpy / scipy
+* yaml
 
 ## Installing
 Since we're still putting this together, just install in developer mode for now.
