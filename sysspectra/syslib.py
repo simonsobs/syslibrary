@@ -2,7 +2,7 @@ import os
 import pkg_resources
 import numpy as np
 from .model import Model
-from fgspectra.power import PowerSpectrumFromFile
+#from fgspectra.power import PowerSpectrumFromFile
 from itertools import product
 
 def _get_power_file(model):
@@ -45,43 +45,47 @@ class Calibration(Multiplication_matrix):
     """
     pass
 
-class TemplateFromFile(PowerSpectrumFromFile):
-    """PowerSpectrum for Thermal Sunyaev-Zel'dovich (Dunkley et al. 2013)."""
+# class TemplateFromFile(PowerSpectrumFromFile):
+#     """PowerSpectrum for Thermal Sunyaev-Zel'dovich (Dunkley et al. 2013)."""
 
-    def __init__(self,**kwargs):
-        names=kwargs['filenames']#['genericTemplateTT']
-        filenames=[]
-        for i,n in np.ndenumerate(names):
-            print(i)
-            """Intialize object with parameters."""
-            filenames.append(_get_power_file(n))
-        print(filenames,'we are in TemplateFromFile')
+#     def __init__(self,**kwargs):
+#         names=kwargs['filenames']#['genericTemplateTT']
+#         filenames=[]
+#         for i,n in np.ndenumerate(names):
+#             print(i)
+#             """Intialize object with parameters."""
+#             filenames.append(_get_power_file(n))
+#         print(filenames,'we are in TemplateFromFile')
 
-        super().__init__(filenames)
+#         super().__init__(filenames)
 
-class TemplatesFromFiles(PowerSpectrumFromFile):
-    """PowerSpectrum for Thermal Sunyaev-Zel'dovich (Dunkley et al. 2013)."""
+# class TemplatesFromFiles(PowerSpectrumFromFile):
+#     """PowerSpectrum for Thermal Sunyaev-Zel'dovich (Dunkley et al. 2013)."""
 
-    def __init__(self,**kwargs):
-        freqs=kwargs['nu']
-        nfreqs=len(freqs)
-        corr=product(freqs,freqs)
-        rootname='generic_template_'
-        filenames=[]
-        for i,c in enumerate(corr):
-            #print(i,c)
-            #idx = (i%nfreqs, i//nfreqs)
-            name=rootname+c[0]+'_'+c[1]
-            """Intialize object with parameters."""
-            filenames.append(_get_power_file(name))
-        filenames=np.reshape(filenames,(nfreqs,nfreqs))
-        #print(filenames,'we are in TemplateFromFile')
+#     def __init__(self,**kwargs):
+#         freqs=kwargs['nu']
+#         nfreqs=len(freqs)
+#         corr=product(freqs,freqs)
+#         rootname='generic_template_'
+#         filenames=[]
+#         for i,c in enumerate(corr):
+#             #print(i,c)
+#             #idx = (i%nfreqs, i//nfreqs)
+#             name=rootname+c[0]+'_'+c[1]
+#             """Intialize object with parameters."""
+#             filenames.append(_get_power_file(name))
+#         filenames=np.reshape(filenames,(nfreqs,nfreqs))
+#         #print(filenames,'we are in TemplateFromFile')
 
-        super().__init__(filenames) 
+#         super().__init__(filenames) 
 
 class residual(Model):
     r"""
-    T2E leakage template a la Planck
+    residual leakage template
+    Inputs:
+    - ell: array of multipoles
+    - spectra: dictionary of cls. Must be in the following format:
+               spectra[spec,f1,f2], with spec=tt,te,ee and f1,f2=freqs
     """
     def __init__(self,**kwargs):
         self.ell=kwargs['ell']
@@ -98,11 +102,11 @@ class residual(Model):
 class TtoEleak_Planck15(residual):
     r"""
     T2E leakage template a la Planck
+    te'(nu1,nu2) = te(nu1,nu2)+enu(l,nu2)*tt(nu1,nu2)
+    ee'(nu1,nu2) = ee(nu1,nu2)+enu(l,nu1)*te(nu1,nu2)+enu(l,nu2)*te(nu2,nu1)
+                  +enu(l,nu1)*enu(l,nu2)*tt(nu1,nu2)
+    enu(l,nu1)=enu0(nu1)+enu2(nu1)*l**2+enu4(nu1)*l**4
     """
-    #def __init__(self,**kwargs):
-    #    self.ell=kwargs['ell']
-    #    self.cl=kwargs["spectra"]
-    #    self.set_defaults(**kwargs)
 
     def eval(self,enu={'100':[0.,0.,0.]},nu=None):
         self.enul=dict()
@@ -127,9 +131,13 @@ class TtoEleak_Planck15(residual):
 class Calibration_Planck15(residual):
     r"""
     Calibration matrix template a la Planck
+    G^XY_nu1nu2 = 1/yp**2 {1/(2sqrt(c^XX_nu1 c^YY_nu2))+1/(2sqrt(c^XX_nu2 c^YY_nu1))}
+    cal1,cal2 are dictionaries of calibration factors:
+    cal1[XX][0,1,2]=1/yp {1/(sqrt(c^XX_nu))}
+    cal1[XX]*cal2[YY]=G^XY
     """
 
-    def eval(self,cal1={'a':[1.,1.,1.]},cal2={'b':[1.,1.,1.]},nu=None):
+    def eval(self,cal1={'tt':[1.,1.,1.]},cal2={'tt':[1.,1.,1.]},nu=None):
         cal=dict()
         for k1 in cal1.keys():
             c1=np.array(cal1[k1])[...,np.newaxis]
@@ -139,11 +147,8 @@ class Calibration_Planck15(residual):
                     cal[k1]=c1*c2
                 else:
                     cal['te']=c1*c2
-        #cal1=np.array(cal1)[...,np.newaxis]
-        #cal2=np.array(cal2)
-        #cal=cal1*cal2
+
         self.freq=nu
-        #spec=list(self.cl.keys())[0][0]
         dcl=dict()
 
         
@@ -155,7 +160,7 @@ class Calibration_Planck15(residual):
         return dcl
 
 class ReadTemplateFromFile(Model):
-    """PowerSpectrum for Thermal Sunyaev-Zel'dovich (Dunkley et al. 2013)."""
+    """PowerSpectrum for generic template read from yaml file"""
 
     def __init__(self,**kwargs):
         name=kwargs['rootname']#['genericTemplateTT']
