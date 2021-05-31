@@ -30,13 +30,15 @@ class TtoEleak_Planck15(residual):
 
         return dcl
 
-class Calibration_Planck15(residual):
+class Calibration_alm(residual):
     r"""
-    Calibration matrix template a la Planck
-    G^XY_nu1nu2 = 1/yp**2 {1/(2sqrt(c^XX_nu1 c^YY_nu2))+1/(2sqrt(c^XX_nu2 c^YY_nu1))}
-    cal1,cal2 are dictionaries of calibration factors:
-    cal1[XX][0,1,2]=1/yp {1/(sqrt(c^XX_nu))}
+    build calibration matrix to be applied to C_ell
+    from calibration factors applied to a_lm
+    i.e.: a_lm^X_nu1  -> c^X_nu1 a_lm^X_nu1, with X=T,E
+    cal1,cal2 are dictionaries of calibration factors c^X_nu:
+    cal1[XX][0,1,2]=[c^X_nu1,c^X_nu2,c^X_nu3]
     cal1[XX]*cal2[YY]=G^XY
+    NB: cal built such that calibrated TE_nu1nu2 != TE_nu2nu1
     """
 
     def eval(self,cal1={'tt':[1.,1.,1.]},cal2={'tt':[1.,1.,1.]},nu=None):
