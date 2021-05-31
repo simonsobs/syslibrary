@@ -62,3 +62,41 @@ class Calibration_alm(residual):
                     dcl[spec,f1,f2] = cal[spec][i1,i2]*self.cl[spec,f1,f2]
 
         return dcl
+
+class Rotation_alm(residual):
+    r"""
+    apply rotation of C_ell due to polangle miscalibration
+    each freq channel nu is rotated by its own polangle alpha_nu
+    NB: alpha must be in deg
+    """
+
+    def eval(self,alpha=1.,nu=None,cls=['tt']):
+        self.freq=nu
+        #NB must check that len(alpha)==len(freq)
+        ca=np.cos(np.deg2rad(2.*np.array(alpha)))
+        sa=np.sin(np.deg2rad(2.*np.array(alpha)))
+        dcl=dict()
+
+        for i1,f1 in enumerate(self.freq):
+            for i2,f2 in enumerate(self.freq):
+                dcl['te',f1,f2] = ca[i2]*self.cl['te',f1,f2]
+                dcl['ee',f1,f2] = ca[i1]*ca[i2]*self.cl['ee',f1,f2]
+                if('bb' in cls):
+                    dcl['ee',f1,f2] += sa[i1]*sa[i2]*self.cl['bb',f1,f2]
+                    dcl['bb',f1,f2] = (ca[i1]*ca[i2]*self.cl['bb',f1,f2] +
+                                       sa[i1]*sa[i2]*self.cl['ee',f1,f2])
+                if('eb' in cls):
+                    dcl['ee',f1,f2] += (-ca[i1]*sa[i2]*self.cl['eb',f1,f2] -
+                                        sa[i1]*ca[i2]*self.cl['eb',f2,f1])
+                    dcl['bb',f1,f2] += (sa[i1]*ca[i2]*self.cl['eb',f1,f2] +
+                                        sa[i2]*ca[i1]*self.cl['eb',f2,f1])
+                    dcl['eb',f1,f2] = (ca[i1]*sa[i2]*self.cl['ee',f1,f2] - 
+                                       sa[i1]*ca[i2]*self.cl['bb',f1,f2] +
+                                       ca[i1]*ca[i2]*self.cl['eb',f1,f2] -
+                                       sa[i1]*sa[i2]*self.cl['eb',f2,f1])
+                if('tb' in cls):
+                    dcl['te',f1,f2] += -sa[i2]*self.cl['tb',f1,f2]
+                    dcl['tb',f1,f2] = (sa[i2]*self.cl['te',f1,f2] +
+                                       ca[i2]*self.cl['tb',f1,f2])
+
+        return dcl
