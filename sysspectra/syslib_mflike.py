@@ -30,7 +30,7 @@ class TtoEleak_Planck15(residual):
 
         return dcl
 
-class Calibration_Planck15(residual):
+class Calibration_map_based(residual):
     r"""
     Calibration matrix template a la Planck
     G^XY_nu1nu2 = 1/yp**2 {1/(2sqrt(c^XX_nu1 c^YY_nu2))+1/(2sqrt(c^XX_nu2 c^YY_nu1))}
