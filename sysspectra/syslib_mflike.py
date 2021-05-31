@@ -81,6 +81,7 @@ class Rotation_alm(residual):
             for i2,f2 in enumerate(self.freq):
                 dcl['te',f1,f2] = ca[i2]*self.cl['te',f1,f2]
                 dcl['ee',f1,f2] = ca[i1]*ca[i2]*self.cl['ee',f1,f2]
+                dcl['tt',f1,f2] = self.cl['tt',f1,f2]
                 if('bb' in cls):
                     dcl['ee',f1,f2] += sa[i1]*sa[i2]*self.cl['bb',f1,f2]
                     dcl['bb',f1,f2] = (ca[i1]*ca[i2]*self.cl['bb',f1,f2] +
