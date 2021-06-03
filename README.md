@@ -1,4 +1,4 @@
-# SYSspectra
+# SYSLibrary
 
 Library of systematics template for SO likelihood analysis.
 
