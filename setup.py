@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#"""fgspectra: GitHub <https://github.com/simonsobs/fgspectra>."""
+#"""syslibrary: GitHub <https://github.com/simonsobs/syslibrary>."""
 
 from setuptools import setup
 
-setup(name='sysspectra',
+setup(name='syslibrary',
       version='0.1',
       description='Systematics library',
       author='Simons Observatory sys crew',
