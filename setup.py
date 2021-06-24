@@ -9,7 +9,7 @@ setup(name='syslibrary',
       description='Systematics library',
       author='Simons Observatory sys crew',
       author_email='',
-      packages=['sysspectra'],
+      packages=['syslibrary'],
       python_requires='>3',
       include_package_data=True
       )

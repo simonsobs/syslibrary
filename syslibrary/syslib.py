@@ -8,7 +8,7 @@ from itertools import product
 def _get_power_file(model):
     """ File path for the named model
     """
-    data_path = pkg_resources.resource_filename('sysspectra', 'data/')
+    data_path = pkg_resources.resource_filename('syslibrary', 'data/')
     filename = os.path.join(data_path, 'cl_%s.dat'%model)
     #print(filename,'we are in _get_power_file')
     if os.path.exists(filename):
@@ -18,7 +18,7 @@ def _get_power_file(model):
 def _get_power_file_yaml(model):
     """ File path for the named model
     """
-    data_path = pkg_resources.resource_filename('sysspectra', 'data/')
+    data_path = pkg_resources.resource_filename('syslibrary', 'data/')
     filename = os.path.join(data_path, '%s.yaml'%model)
     #print(filename,'we are in _get_power_file')
     if os.path.exists(filename):
@@ -106,21 +106,27 @@ class ReadTemplateFromFile(Model):
         name=kwargs['rootname']#['genericTemplateTT']
         self.filename=_get_power_file_yaml(name)
 
+        import yaml
+
+        with open(self.filename) as file:
+            self.doc = yaml.full_load(file)
+            
         #super().__init__(self.filename)
 
-    def eval(self,amp={'field1':np.ones((3,3))},ell=None):
+    #def eval(self,amp={'field1':np.ones((3,3))},ell=None):
+    def eval(self,amp=1.,ell=None):
     	#amp={'tt':np.ones((3,3)),
     	#'te':np.ones((3,3)),'ee':np.ones((3,3))},ell=None):
-        import yaml
+        #import yaml
 
         dcl=dict()
 
-        with open(self.filename) as file:
-            doc = yaml.full_load(file)
-            for spec in doc.keys():
-                for i1,f1 in enumerate(doc[spec].keys()):
-                    for i2,f2 in enumerate(doc[spec][f1].keys()):
-                        dcl[spec,f1,f2] = amp[spec][i1,i2]*np.array(doc[spec][f1][f2])[ell]
+        #with open(self.filename) as file:
+        #    doc = yaml.full_load(file)
+        for spec in self.doc.keys():
+            for i1,f1 in enumerate(self.doc[spec].keys()):
+                for i2,f2 in enumerate(self.doc[spec][f1].keys()):
+                    dcl[spec,f1,f2] = amp*np.array(self.doc[spec][f1][f2])[ell]
 
         return dcl
 
