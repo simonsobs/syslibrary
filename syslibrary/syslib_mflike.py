@@ -41,7 +41,7 @@ class Calibration_alm(residual):
     NB: cal built such that calibrated TE_nu1nu2 != TE_nu2nu1
     """
 
-    def eval(self,cal1={'tt':[1.,1.,1.]},cal2={'tt':[1.,1.,1.]},nu=None):
+    def eval(self,cal1={'t':[1.,1.,1.]},cal2={'t':[1.,1.,1.]},nu=None):
         cal=dict()
         for k1 in cal1.keys():
             c1=np.array(cal1[k1])[...,np.newaxis]
