@@ -36,8 +36,8 @@ class Calibration_alm(residual):
     from calibration factors applied to a_lm
     i.e.: a_lm^X_nu1  -> c^X_nu1 a_lm^X_nu1, with X=T,E
     cal1,cal2 are dictionaries of calibration factors c^X_nu:
-    cal1[XX][0,1,2]=[c^X_nu1,c^X_nu2,c^X_nu3]
-    cal1[XX]*cal2[YY]=G^XY
+    cal1[X][0,1,2]=[c^X_nu1,c^X_nu2,c^X_nu3]
+    cal1[X]*cal2[Y]=G^XY
     NB: cal built such that calibrated TE_nu1nu2 != TE_nu2nu1
     """
 
@@ -47,11 +47,8 @@ class Calibration_alm(residual):
             c1=np.array(cal1[k1])[...,np.newaxis]
             for k2 in cal2.keys():
                 c2=np.array(cal2[k2])
-                if(k1==k2):
-                    cal[k1]=c1*c2
-                else:
-                    cal['te']=c1*c2
-
+                cal[k1+k2] = c1*c2
+                
         self.freq=nu
         dcl=dict()
 
@@ -59,7 +56,8 @@ class Calibration_alm(residual):
         for i1,f1 in enumerate(self.freq):
             for i2,f2 in enumerate(self.freq):
                 for spec in cal.keys():
-                    dcl[spec,f1,f2] = cal[spec][i1,i2]*self.cl[spec,f1,f2]
+                    if (spec,f1,f2) in self.cl.keys():
+                        dcl[spec,f1,f2] = cal[spec][i1,i2]*self.cl[spec,f1,f2]
 
         return dcl
 
