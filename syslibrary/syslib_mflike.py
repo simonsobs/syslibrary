@@ -36,8 +36,8 @@ class Calibration_alm(residual):
     from calibration factors applied to a_lm
     i.e.: a_lm^X_nu1  -> c^X_nu1 a_lm^X_nu1, with X=T,E
     cal1,cal2 are dictionaries of calibration factors c^X_nu:
-    cal1[XX][0,1,2]=[c^X_nu1,c^X_nu2,c^X_nu3]
-    cal1[XX]*cal2[YY]=G^XY
+    cal1[X][0,1,2]=[c^X_nu1,c^X_nu2,c^X_nu3]
+    cal1[X]*cal2[Y]=G^XY
     NB: cal built such that calibrated TE_nu1nu2 != TE_nu2nu1
     """
 
