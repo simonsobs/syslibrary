@@ -47,11 +47,8 @@ class Calibration_alm(residual):
             c1=np.array(cal1[k1])[...,np.newaxis]
             for k2 in cal2.keys():
                 c2=np.array(cal2[k2])
-                if(k1==k2):
-                    cal[k1]=c1*c2
-                else:
-                    cal['te']=c1*c2
-
+                cal[k1+k2] = c1*c2
+                
         self.freq=nu
         dcl=dict()
 
@@ -59,7 +56,8 @@ class Calibration_alm(residual):
         for i1,f1 in enumerate(self.freq):
             for i2,f2 in enumerate(self.freq):
                 for spec in cal.keys():
-                    dcl[spec,f1,f2] = cal[spec][i1,i2]*self.cl[spec,f1,f2]
+                    if (spec,f1,f2) in self.cl.keys():
+                        dcl[spec,f1,f2] = cal[spec][i1,i2]*self.cl[spec,f1,f2]
 
         return dcl
 
