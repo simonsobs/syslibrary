@@ -1,9 +1,34 @@
 from .syslib import *
 import numpy as np
 
+class SystematicTemplate(residual):
+    r"""
+    Leakage template such as:
+    |T'nu1|  = |(1+ deltaT1)       0    | |Tnu1|
+    |E'nu1|    |  gamma1     (1+deltaE1)| |Enu1|
+     
+    so, at the power spectrum level:
+    tt'(nu1,nu2) = (1+deltaT1)*(1+deltaT2)*tt(nu1,nu2)
+    te'(nu1,nu2) = (1+deltaT1)*gamma2*tt(nu1,nu2) + (1+deltaT1)*(1+deltaE2)*te(nu1,nu2)
+    ee'(nu1,nu2) = gamma1*gamma2*tt(nu1,nu2) + gamma1*(1+deltaE2)*te(nu1,nu2)  
+                   + gamma2*(1+deltaE1)*te(nu2,nu1) + (1+deltaE1)*(1+deltaE2)*ee(nu1,nu2)
+    """
+
+    def eval(self,deltaT={'100':[0.]},deltaE={'100':[0.]},gamma={'100':[0.]},nu=None):
+        self.freq=nu
+        dcl=dict()
+
+        for c1,f1 in enumerate(self.freq):
+            for c2,f2 in enumerate(self.freq):
+                dcl["tt",f1,f2] = (1+deltaT[f1])*(1+deltaT[f2])*self.cl["tt",f1,f2]
+                dcl["te",f1,f2] = (1+deltaT[f1])*gamma[f2]*self.cl["tt",f1,f2] + (1+deltaT[f1])*(1+deltaE[f2])*self.cl["te",f1,f2]  
+                dcl["ee",f1,f2] = gamma[f1]*gamma[f2]*self.cl["tt",f1,f2] + gamma[f1]*(1+deltaE[f2])*self.cl["te",f1,f2] + gamma[f2]*(1+deltaE[f1])*self.cl["te",f2,f1] + (1+deltaE[f1])*(1+deltaE[f2])*self.cl["ee",f1,f2]
+
+        return dcl
+
 class TtoEleak_Planck15(residual):
     r"""
-    T2E leakage template a la Planck
+    T2E leakage template a la Planck 
     te'(nu1,nu2) = te(nu1,nu2)+enu(l,nu2)*tt(nu1,nu2)
     ee'(nu1,nu2) = ee(nu1,nu2)+enu(l,nu1)*te(nu1,nu2)+enu(l,nu2)*te(nu2,nu1)
                   +enu(l,nu1)*enu(l,nu2)*tt(nu1,nu2)
