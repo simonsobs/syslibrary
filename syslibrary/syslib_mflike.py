@@ -23,6 +23,12 @@ class SystematicTemplate(residual):
                 dcl["tt",f1,f2] = (1+deltaT[f1])*(1+deltaT[f2])*self.cl["tt",f1,f2]
                 dcl["te",f1,f2] = (1+deltaT[f1])*gamma[f2]*self.cl["tt",f1,f2] + (1+deltaT[f1])*(1+deltaE[f2])*self.cl["te",f1,f2]  
                 dcl["ee",f1,f2] = gamma[f1]*gamma[f2]*self.cl["tt",f1,f2] + gamma[f1]*(1+deltaE[f2])*self.cl["te",f1,f2] + gamma[f2]*(1+deltaE[f1])*self.cl["te",f2,f1] + (1+deltaE[f1])*(1+deltaE[f2])*self.cl["ee",f1,f2]
+                if ("tb",f1,f2) in self.cl.keys():
+                    dcl["tb",f1,f2] = self.cl["tb",f1,f2]
+                if ("eb",f1,f2) in self.cl.keys():
+                    dcl["eb",f1,f2] = self.cl["eb",f1,f2]
+                if ("bb",f1,f2) in self.cl.keys():
+                    dcl["bb",f1,f2] = self.cl["bb",f1,f2]
 
         return dcl
 
