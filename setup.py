@@ -13,7 +13,7 @@ setup(name='syslibrary',
       python_requires='>3.9',
       install_requires=[
           "numpy",
-          "yaml"
+          "PyYAML",
           "fgspectra"
       ],
       include_package_data=True
