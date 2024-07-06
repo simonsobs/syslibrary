@@ -1,28 +1,24 @@
-import os
-import pkg_resources
 import numpy as np
-from .model import Model
-from itertools import product
+from fgspectra.model import Model
+import importlib.resources as pkg_resources
 
 def _get_power_file(model):
     """ File path for the named model
     """
-    data_path = pkg_resources.resource_filename('syslibrary', 'data/')
-    filename = os.path.join(data_path, 'cl_%s.dat'%model)
-
-    if os.path.exists(filename):
-        return filename
-    raise ValueError('No template for model '+model)
+    try:
+        with pkg_resources.path('syslibrary.data', f'cl_{model}.dat') as path:
+            return str(path)
+    except FileNotFoundError:
+        raise ValueError(f'No template for model {model}')
 
 def _get_power_file_yaml(model):
     """ yaml file path for the named model
     """
-    data_path = pkg_resources.resource_filename('syslibrary', 'data/')
-    filename = os.path.join(data_path, '%s.yaml'%model)
-
-    if os.path.exists(filename):
-        return filename
-    raise ValueError('No template for model '+model)
+    try:
+        with pkg_resources.path('syslibrary.data', f'{model}.yaml') as path:
+            return str(path)
+    except FileNotFoundError:
+        raise ValueError(f'No template for model {model}')
 
 class Multiplication_matrix(Model):
     r"""
@@ -43,7 +39,7 @@ class Calibration(Multiplication_matrix):
     """
     pass
 
-class residual(Model):
+class Residual(Model):
     r"""
     residual leakage template
     Inputs:
