@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "syslibrary"
+description = "Systematics library for Simons Observatory"
+authors = [{name = "Simons Observatory sys crew"}]
+readme = "README.md"
+requires-python = ">3"
+dynamic = ["version"]
+dependencies = [
+	"numpy"
+]
+
+[project.urls]
+Homepage = "https://github.com/simonsobs/syslibrary"
+
+[tool.setuptools.packages.find]
+where = ["syslibrary"]
+
+[tools.setuptools]
+include-package-data = true
+
+[tool.setuptools_scm]
+version_file = "syslibrary/_version.py"
