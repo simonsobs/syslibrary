@@ -10,11 +10,10 @@ setup(name='syslibrary',
       author='Simons Observatory sys crew',
       author_email='',
       packages=['syslibrary'],
-      python_requires='>3.9',
+      python_requires='>=3.9',
       install_requires=[
           "numpy",
           "yaml"
-          "fgspectra"
       ],
       include_package_data=True
       )
