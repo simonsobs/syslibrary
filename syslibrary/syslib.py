@@ -18,7 +18,7 @@ class Systematic:
     Abstract class for residual definition
     """
 
-    def __init__(self, ell: np.ndarray, nu: list[float] = None, requested_cls: list[str] = None):
+    def __init__(self, ell: np.ndarray, nu: list[str] = None, requested_cls: list[str] = None):
         self.ell = np.ascontiguousarray(ell, dtype=np.longlong)
         self.freq = nu
         self.requested_cls = requested_cls

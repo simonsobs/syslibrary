@@ -13,9 +13,9 @@ class TtoEleak_Planck15(Systematic):
 
     def get_delta_cl(self, cl: dict, enu={'100': [0., 0., 0.]}) -> dict:
         """
-        :param enu: 
         :param cl: dictionary of cls. Must be in the following format:
                cl[spec,f1,f2], with e.g., cl=tt,te,ee,etc and f1,f2=freqs
+        :param enu: dictionary of parameters.
         :return: delta cl dict
         """
 
@@ -39,7 +39,7 @@ class TtoEleak_Planck15(Systematic):
         return dcl
 
 
-class Rotation_alm(Systematic):
+class RotationAlm(Systematic):
     r"""
     apply rotation of C_ell due to polangle miscalibration
     each freq channel nu is rotated by its own polangle alpha_nu
@@ -48,9 +48,9 @@ class Rotation_alm(Systematic):
 
     def get_rotated_cl(self, cl: dict, alpha: list):
         """
-        :param alpha: array of polangle miscalibration in degrees
         :param cl: dictionary of cls. Must be in the following format:
                cl[spec,f1,f2], with e.g., cl=tt,te,ee,etc and f1,f2=freqs
+        :param alpha: array of polangle miscalibration in degrees
         """
 
         # NB must check that len(alpha)==len(freq)
