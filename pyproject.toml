@@ -7,10 +7,11 @@ name = "syslibrary"
 description = "Systematics library for Simons Observatory"
 authors = [{name = "Simons Observatory sys crew"}]
 readme = "README.md"
-requires-python = ">3"
+requires-python = ">3.9"
 dynamic = ["version"]
 dependencies = [
-	"numpy"
+	"numpy",
+	"PyYAML"
 ]
 
 [project.urls]
