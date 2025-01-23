@@ -1,10 +1,48 @@
 import numpy as np
 from .syslib import Systematic
 
+class SystematicTemplate(Systematic):
+    r"""
+    Leakage template such as:
+    |T'nu1|  = |(1+ deltaT1)       0    | |Tnu1|
+    |E'nu1|    |  gamma1     (1+deltaE1)| |Enu1|
+     
+    so, at the power spectrum level:
+    tt'(nu1,nu2) = (1+deltaT1)*(1+deltaT2)*tt(nu1,nu2)
+    te'(nu1,nu2) = (1+deltaT1)*gamma2*tt(nu1,nu2) + (1+deltaT1)*(1+deltaE2)*te(nu1,nu2)
+    ee'(nu1,nu2) = gamma1*gamma2*tt(nu1,nu2) + gamma1*(1+deltaE2)*te(nu1,nu2)  
+                   + gamma2*(1+deltaE1)*te(nu2,nu1) + (1+deltaE1)*(1+deltaE2)*ee(nu1,nu2)
+    """
+
+    def get_cl(self, cl: dict, deltaT={'100':[0.]}, deltaE={'100':[0.]}, gamma={'100':[0.]}) #dTEg={'100': {"dT": [0.], "dE": [0.], "gamma": [0.]}}) -> dict:
+        """
+        :param cl: dictionary of cls. Must be in the following format:
+               cl[spec,f1,f2], with e.g., cl=tt,te,ee,etc and f1,f2=freqs
+        :param deltaT: dictionary of leakage corrections in T per frequency channel
+        :param deltaE: dictionary of leakage corrections in E per frequency channel
+        :param gamma: dictionary of T2E leakage corrections per frequency channel.
+        :return: cl dict
+        """
+
+        dcl=dict()
+
+        for c1,f1 in enumerate(self.freq):
+            for c2,f2 in enumerate(self.freq):
+                dcl["tt",f1,f2] = (1+deltaT[f1])*(1+deltaT[f2])*self.cl["tt",f1,f2]
+                dcl["te",f1,f2] = (1+deltaT[f1])*gamma[f2]*self.cl["tt",f1,f2] + (1+deltaT[f1])*(1+deltaE[f2])*self.cl["te",f1,f2]  
+                dcl["ee",f1,f2] = gamma[f1]*gamma[f2]*self.cl["tt",f1,f2] + gamma[f1]*(1+deltaE[f2])*self.cl["te",f1,f2] + gamma[f2]*(1+deltaE[f1])*self.cl["te",f2,f1] + (1+deltaE[f1])*(1+deltaE[f2])*self.cl["ee",f1,f2]
+                if ("tb",f1,f2) in self.cl.keys():
+                    dcl["tb",f1,f2] = self.cl["tb",f1,f2]
+                if ("eb",f1,f2) in self.cl.keys():
+                    dcl["eb",f1,f2] = self.cl["eb",f1,f2]
+                if ("bb",f1,f2) in self.cl.keys():
+                    dcl["bb",f1,f2] = self.cl["bb",f1,f2]
+
+        return dcl
 
 class TtoEleak_Planck15(Systematic):
     r"""
-    T2E leakage template a la Planck
+    T2E leakage template a la Planck 
     te'(nu1,nu2) = te(nu1,nu2)+enu(l,nu2)*tt(nu1,nu2)
     ee'(nu1,nu2) = ee(nu1,nu2)+enu(l,nu1)*te(nu1,nu2)+enu(l,nu2)*te(nu2,nu1)
                   +enu(l,nu1)*enu(l,nu2)*tt(nu1,nu2)
@@ -62,9 +100,15 @@ class RotationAlm(Systematic):
         for f1, ca1, sa1 in zip(self.freq, cos_ang, sing_ang):
             for f2, ca2, sa2 in zip(self.freq, cos_ang, sing_ang):
 
-                dcl['te', f1, f2] = ca2 * cl['te', f1, f2]
-                dcl['ee', f1, f2] = ca1 * ca2 * cl['ee', f1, f2]
-                dcl['tt', f1, f2] = cl['tt', f1, f2]
+                if 'te' in self.requested_cls:
+                    dcl['te', f1, f2] = ca2 * cl['te', f1, f2]
+
+                if 'ee' in self.requested_cls:
+                    dcl['ee', f1, f2] = ca1 * ca2 * cl['ee', f1, f2]
+
+                if 'tt' in self.requested_cls:
+                    dcl['tt', f1, f2] = cl['tt', f1, f2]
+                    
                 if 'bb' in self.requested_cls:
                     dcl['ee', f1, f2] += sa1 * sa2 * cl['bb', f1, f2]
                     dcl['bb', f1, f2] = (ca1 * ca2 * cl['bb', f1, f2] +
