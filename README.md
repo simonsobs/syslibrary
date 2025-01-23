@@ -15,7 +15,6 @@ Currently available abstract classes are
 * act on a dictionary of theory Cls
 
 Currently available specific classes are:
-* alm-based calibration (mflike)
 * rotation of Cls due to miscalibration of polarization angle
 * T-to-E leakage (Planck-based)
 
@@ -25,9 +24,10 @@ To get started, have a look at the notebooks in `sysspectra/notebook`
 Current contributors to syslibrary are: Martina Gerbino, Luca Pagano. Special thanks to FGSpectra contributors (Davide Poletti, Max Abitbol, Zack Li). The first version of syslib was heavily based on fgspectra. Feel free to join: contributors are welcome!
 
 ## Dependencies
-* Python > 3
+* Python > 3.9
 * numpy / scipy
 * yaml
+* fgspectra
 
 ## Installing
 Since we're still putting this together, just install in developer mode for now.
